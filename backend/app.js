@@ -20,7 +20,8 @@ const app = express();
 app.use(express.json());
 
 app.use(cors({
-    origin: "http://localhost:5173"
+    origin: "http://localhost:5173",
+     credentials: true
 }));
 
 const db_url = process.env.ATLAS_DB_URL;
@@ -58,7 +59,9 @@ const sessionOption = {
     cookie: {
         expires: Date.now()+7*24*60*60*1000,
         maxAge: 7*24*60*60*1000,
-        httpOnly: true
+        httpOnly: true,
+        sameSite: "lax",   // ✅ IMPORTANT
+        secure: false     
     }
 };
 
@@ -80,6 +83,12 @@ app.use((req, res, next) => {
 // routes
 app.use('/candidate', candidateRouter);
 app.use('/', userRouter);
+
+app.get("/me", (req, res) => {
+    res.json({
+        user: req.user || null
+    });
+});
 
 app.use( (req,res,next) =>{
     next(new ExpressError(404,"Page not found"));
