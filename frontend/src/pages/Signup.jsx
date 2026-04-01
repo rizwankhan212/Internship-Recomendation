@@ -8,6 +8,7 @@ export default function Signup() {
     password: "",
     role: "candidate"
   });
+  const [error,setError] = useState("");
 
   const navigate = useNavigate();
 
@@ -16,15 +17,16 @@ export default function Signup() {
     try {
       await signupUser(form);
       alert("Signup successful");
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
-      alert(err.response?.data?.message || "Error");
+      setError(err.response?.data?.message || "signup failed");
     }
   };
 
   return (
     <div>
       <h2>Signup</h2>
+       {error && <p style={{ color: "red" }}>{error}</p>}
       <form onSubmit={handleSubmit}>
         <input
           placeholder="Email"
