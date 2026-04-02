@@ -1,0 +1,27 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.11.9, pytest-7.4.3, pluggy-1.6.0 -- C:\Coding\Mini Project\backend\venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Coding\Mini Project\backend
+plugins: anyio-3.7.1, asyncio-0.23.2
+asyncio: mode=Mode.STRICT
+collecting ... collected 17 items
+
+tests/test_auth.py::TestPasswordHashing::test_hash_password PASSED       [  5%]
+tests/test_auth.py::TestPasswordHashing::test_verify_password_correct PASSED [ 11%]
+tests/test_auth.py::TestPasswordHashing::test_verify_password_incorrect PASSED [ 17%]
+tests/test_auth.py::TestJWTTokens::test_create_and_decode_access_token PASSED [ 23%]
+tests/test_auth.py::TestJWTTokens::test_decode_invalid_token PASSED      [ 29%]
+tests/test_auth.py::TestJWTTokens::test_token_contains_expiry PASSED     [ 35%]
+tests/test_ranking.py::TestResumeParser::test_extract_skills PASSED      [ 41%]
+tests/test_ranking.py::TestResumeParser::test_parse_resume_full PASSED   [ 47%]
+tests/test_ranking.py::TestResumeParser::test_empty_text PASSED          [ 52%]
+tests/test_ranking.py::TestBM25Scorer::test_single_document_score PASSED [ 58%]
+tests/test_ranking.py::TestBM25Scorer::test_batch_scoring PASSED         [ 64%]
+tests/test_ranking.py::TestBM25Scorer::test_empty_query PASSED           [ 70%]
+tests/test_ranking.py::TestLambdaMARTRanker::test_feature_extraction PASSED [ 76%]
+tests/test_ranking.py::TestLambdaMARTRanker::test_rank_candidates PASSED [ 82%]
+tests/test_ranking.py::TestOptimizer::test_greedy_shortlist PASSED       [ 88%]
+tests/test_ranking.py::TestOptimizer::test_ilp_shortlist PASSED          [ 94%]
+tests/test_ranking.py::TestOptimizer::test_greedy_fewer_than_max PASSED  [100%]
+
+============================= 17 passed in 1.80s ==============================
