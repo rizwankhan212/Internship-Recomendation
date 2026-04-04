@@ -1,0 +1,58 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+ENV/
+.venv/
+
+# Flask instance folder (contains config, db, etc.)
+instance/
+
+# Environment variables
+.env
+.env.*
+
+# SQLite database files
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Flask cache
+.cache/
+
+# pytest / testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build / distribution
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Jupyter Notebook checkpoints (if using ML stuff)
+.ipynb_checkpoints/
+
+# mypy / type checking
+.mypy_cache/
+
+# Temporary files
+*.swp
+*.tmp

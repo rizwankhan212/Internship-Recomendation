@@ -1,29 +1,51 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import ProtectedRoute from "./components/ProtectedRoute";
-import CandidateDashboard from "./pages/CandidateDashboard";
-import RecruiterDashboard from "./pages/RecruiterDashboard";
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './context/AuthContext';
+import Navbar from './components/Navbar';
+import Landing from './pages/Landing';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import CandidateDashboard from './pages/candidate/Dashboard';
+import CandidateProfile from './pages/candidate/Profile';
+import CandidateApplications from './pages/candidate/Applications';
+import RecruiterDashboard from './pages/recruiter/Dashboard';
+import RecruiterProfile from './pages/recruiter/Profile';
+import PostInternship from './pages/recruiter/PostInternship';
+import Applicants from './pages/recruiter/Applicants';
+import Shortlist from './pages/recruiter/Shortlist';
 
-function App() {
+const PrivateRoute = ({ children, requiredRole }) => {
+  const { user, role, loading } = useAuth();
+  if (loading) return <div className="flex-center" style={{ height: '100vh' }}><div className="spinner" /></div>;
+  if (!user) return <Navigate to="/login" replace />;
+  if (requiredRole && role !== requiredRole) return <Navigate to="/" replace />;
+  return children;
+};
+
+export default function App() {
+  const { user, role } = useAuth();
+
   return (
-    <BrowserRouter>
+    <>
+      <Navbar />
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/candidate-dashboard" element={
-          <ProtectedRoute allowedRole="candidate">
-            <CandidateDashboard/>
-          </ProtectedRoute>
-        } />
-        <Route path="/recruiter-dashboard" element={
-          <ProtectedRoute allowedRole="recruiter">
-            <RecruiterDashboard/>
-          </ProtectedRoute>
-        } />
+        <Route path="/" element={<Landing />} />
+        <Route path="/login" element={user ? <Navigate to={role === 'recruiter' ? '/recruiter' : '/candidate'} /> : <Login />} />
+        <Route path="/register" element={user ? <Navigate to={role === 'recruiter' ? '/recruiter' : '/candidate'} /> : <Register />} />
+
+        {/* Candidate Routes */}
+        <Route path="/candidate" element={<PrivateRoute requiredRole="candidate"><CandidateDashboard /></PrivateRoute>} />
+        <Route path="/candidate/profile" element={<PrivateRoute requiredRole="candidate"><CandidateProfile /></PrivateRoute>} />
+        <Route path="/candidate/applications" element={<PrivateRoute requiredRole="candidate"><CandidateApplications /></PrivateRoute>} />
+
+        {/* Recruiter Routes */}
+        <Route path="/recruiter" element={<PrivateRoute requiredRole="recruiter"><RecruiterDashboard /></PrivateRoute>} />
+        <Route path="/recruiter/profile" element={<PrivateRoute requiredRole="recruiter"><RecruiterProfile /></PrivateRoute>} />
+        <Route path="/recruiter/post" element={<PrivateRoute requiredRole="recruiter"><PostInternship /></PrivateRoute>} />
+        <Route path="/recruiter/internships/:id/applicants" element={<PrivateRoute requiredRole="recruiter"><Applicants /></PrivateRoute>} />
+        <Route path="/recruiter/internships/:id/shortlist" element={<PrivateRoute requiredRole="recruiter"><Shortlist /></PrivateRoute>} />
+
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
-    </BrowserRouter>
+    </>
   );
 }
-
-export default App;
