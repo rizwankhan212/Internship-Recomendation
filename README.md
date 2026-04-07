@@ -89,16 +89,6 @@ cd frontend
 npm run dev
 ```
 
-## Demo Credentials
-
-| Role | Email | Password |
-|---|---|---|
-| Recruiter | priya@google.com | Google@123 |
-| Recruiter | rahul@microsoft.com | Microsoft@123 |
-| Recruiter | sneha@amazon.com | Amazon@123 |
-| Recruiter | arjun@flipkart.com | Flipkart@123 |
-| Recruiter | kavya@razorpay.com | Razorpay@123 |
-| Candidate | *(any seeded email)* | Password@123 |
 
 ## API Reference
 
