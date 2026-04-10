@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { getCandidateProfile, updateCandidateProfile } from '../../api/candidateApi';
 
-const ALL_SKILLS = ['JavaScript', 'Python', 'React', 'Node.js', 'MongoDB', 'SQL', 'Machine Learning', 'Deep Learning', 'TensorFlow', 'PyTorch', 'NLP', 'Computer Vision', 'Java', 'Spring', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'DevOps', 'TypeScript', 'Vue', 'Angular', 'GraphQL', 'Flutter', 'Android', 'iOS', 'Swift', 'Kotlin', 'Blockchain', 'Cybersecurity', 'Data Science', 'Tableau', 'Git', 'C++', 'Go', 'Rust'];
+
 
 export default function CandidateProfile() {
   const { user, setUser } = useAuth();
   const [form, setForm] = useState(null);
+  const [skillInput, setSkillInput] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [alert, setAlert] = useState(null);
@@ -28,12 +29,26 @@ export default function CandidateProfile() {
     }).finally(() => setLoading(false));
   }, []);
 
-  const toggleSkill = (s) => {
-    const lower = s.toLowerCase();
-    setForm((f) => ({
-      ...f,
-      skills: f.skills.includes(lower) ? f.skills.filter((x) => x !== lower) : [...f.skills, lower],
-    }));
+  const addSkill = (raw) => {
+    const skill = raw.trim().toLowerCase();
+    if (skill && !form.skills.includes(skill)) {
+      setForm((f) => ({ ...f, skills: [...f.skills, skill] }));
+    }
+    setSkillInput('');
+  };
+
+  const removeSkill = (skill) => {
+    setForm((f) => ({ ...f, skills: f.skills.filter((s) => s !== skill) }));
+  };
+
+  const handleSkillKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addSkill(skillInput);
+    }
+    if (e.key === 'Backspace' && !skillInput && form.skills.length) {
+      removeSkill(form.skills[form.skills.length - 1]);
+    }
   };
 
   const toggleType = (t) => {
@@ -125,17 +140,23 @@ export default function CandidateProfile() {
 
           <div className="card" style={{ marginBottom: 20 }}>
             <div className="section-title">💻 Skills</div>
-            <div className="tags-row">
-              {ALL_SKILLS.map((s) => {
-                const active = form.skills.includes(s.toLowerCase());
-                return (
-                  <span key={s} className="skill-tag" onClick={() => toggleSkill(s)}
-                    style={{ cursor: 'pointer', background: active ? 'rgba(108,99,255,0.3)' : undefined, fontWeight: active ? 700 : 400, borderColor: active ? 'var(--accent)' : undefined }}>
-                    {active ? '✓ ' : ''}{s}
-                  </span>
-                );
-              })}
+            <div className="tags-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: form.skills.length ? 10 : 0 }}>
+              {form.skills.map((s) => (
+                <span key={s} className="skill-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 600, background: 'rgba(108,99,255,0.25)' }}>
+                  {s}
+                  <span onClick={() => removeSkill(s)} style={{ cursor: 'pointer', fontSize: 14, lineHeight: 1, opacity: 0.7, marginLeft: 2 }} title="Remove skill">&times;</span>
+                </span>
+              ))}
             </div>
+            <input
+              className="input"
+              type="text"
+              placeholder={form.skills.length ? 'Add another skill…' : 'e.g. JavaScript, Python, React'}
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              onKeyDown={handleSkillKeyDown}
+              onBlur={() => { if (skillInput.trim()) addSkill(skillInput); }}
+            />
           </div>
 
           <div className="card" style={{ marginBottom: 24 }}>
