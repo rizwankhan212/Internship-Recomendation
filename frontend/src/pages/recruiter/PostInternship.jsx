@@ -2,24 +2,37 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { postInternship } from '../../api/recruiterApi';
 
-const SKILLS_OPTIONS = ['JavaScript', 'Python', 'React', 'Node.js', 'MongoDB', 'SQL', 'Machine Learning', 'Deep Learning', 'TensorFlow', 'PyTorch', 'NLP', 'Computer Vision', 'Java', 'Spring', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'DevOps', 'TypeScript', 'Vue', 'Angular', 'GraphQL', 'Flutter', 'Android', 'iOS', 'Swift', 'Kotlin', 'Blockchain', 'Cybersecurity', 'C++', 'Redis', 'Go'];
-
 export default function PostInternship() {
   const navigate = useNavigate();
   const [form, setForm] = useState({
     title: '', description: '', location: '', type: 'remote', duration: '3 months',
     stipend: 0, openings: 5, minCgpa: 0, skills: [],
   });
+  const [skillInput, setSkillInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const toggleSkill = (s) => {
-    const lower = s.toLowerCase();
-    setForm((f) => ({
-      ...f,
-      skills: f.skills.includes(lower) ? f.skills.filter((x) => x !== lower) : [...f.skills, lower],
-    }));
+  const addSkill = (raw) => {
+    const skill = raw.trim().toLowerCase();
+    if (skill && !form.skills.includes(skill)) {
+      setForm((f) => ({ ...f, skills: [...f.skills, skill] }));
+    }
+    setSkillInput('');
+  };
+
+  const removeSkill = (skill) => {
+    setForm((f) => ({ ...f, skills: f.skills.filter((s) => s !== skill) }));
+  };
+
+  const handleSkillKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addSkill(skillInput);
+    }
+    if (e.key === 'Backspace' && !skillInput && form.skills.length) {
+      removeSkill(form.skills[form.skills.length - 1]);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -99,23 +112,24 @@ export default function PostInternship() {
 
           <div className="card" style={{ marginBottom: 24 }}>
             <div className="section-title">💻 Required Skills</div>
-            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>These skills are used to generate a vector embedding for AI matching.</p>
-            <div className="tags-row">
-              {SKILLS_OPTIONS.map((s) => {
-                const active = form.skills.includes(s.toLowerCase());
-                return (
-                  <span key={s} className="skill-tag" onClick={() => toggleSkill(s)}
-                    style={{ cursor: 'pointer', background: active ? 'rgba(108,99,255,0.3)' : undefined, fontWeight: active ? 700 : 400, borderColor: active ? 'var(--accent)' : undefined }}>
-                    {active ? '✓ ' : ''}{s}
-                  </span>
-                );
-              })}
+            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 12 }}>Type a skill and press Enter or comma to add it. These skills are used for AI matching.</p>
+            <div className="tags-row" style={{ flexWrap: 'wrap', gap: 8, marginBottom: form.skills.length ? 10 : 0 }}>
+              {form.skills.map((s) => (
+                <span key={s} className="skill-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 600, background: 'rgba(108,99,255,0.25)' }}>
+                  {s}
+                  <span onClick={() => removeSkill(s)} style={{ cursor: 'pointer', fontSize: 14, lineHeight: 1, opacity: 0.7, marginLeft: 2 }} title="Remove skill">&times;</span>
+                </span>
+              ))}
             </div>
-            {form.skills.length > 0 && (
-              <div style={{ marginTop: 12, fontSize: 13, color: 'var(--text-secondary)' }}>
-                Selected: <strong style={{ color: 'var(--accent)' }}>{form.skills.join(', ')}</strong>
-              </div>
-            )}
+            <input
+              className="input"
+              type="text"
+              placeholder={form.skills.length ? 'Add another skill…' : 'e.g. JavaScript, Python, React'}
+              value={skillInput}
+              onChange={(e) => setSkillInput(e.target.value)}
+              onKeyDown={handleSkillKeyDown}
+              onBlur={() => { if (skillInput.trim()) addSkill(skillInput); }}
+            />
           </div>
 
           <button className="btn btn-primary btn-lg" type="submit" disabled={loading} style={{ width: '100%', justifyContent: 'center' }}>
