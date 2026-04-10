@@ -39,6 +39,54 @@
   --shadow-glow: 0 0 40px var(--accent-glow);
 }
 
+/* ── Dark Mode ──────────────────────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d2e;
+  --bg-card: rgba(26, 29, 46, 0.9);
+  --bg-card-hover: rgba(30, 34, 55, 1);
+  --bg-glass: rgba(26, 29, 46, 0.92);
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.15);
+
+  --accent-glow: rgba(108, 99, 255, 0.25);
+
+  --text-primary: #e8eaf0;
+  --text-secondary: #9ca3b8;
+  --text-muted: #5c6178;
+
+  --gradient-card: linear-gradient(135deg, rgba(108,99,255,0.12) 0%, rgba(0,168,232,0.08) 100%);
+  --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+[data-theme="dark"] ::-webkit-scrollbar-track { background: #1a1d2e; }
+[data-theme="dark"] .btn-secondary { color: var(--text-primary); border-color: var(--border-hover); }
+[data-theme="dark"] .btn-secondary:hover { background: rgba(108, 99, 255, 0.1); }
+[data-theme="dark"] .input, [data-theme="dark"] select { background: rgba(255,255,255,0.05); color: var(--text-primary); border-color: var(--border); }
+[data-theme="dark"] .input:focus, [data-theme="dark"] select:focus { border-color: var(--accent); background: rgba(255,255,255,0.08); }
+[data-theme="dark"] .modal-card { background: #1e2237; }
+[data-theme="dark"] .auth-card { background: rgba(26, 29, 46, 0.95); }
+
+/* ── Theme Toggle Button ──────────────────────────────────────────────────── */
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+  transform: rotate(20deg);
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }

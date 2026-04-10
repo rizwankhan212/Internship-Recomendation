@@ -5,6 +5,8 @@ import { searchInternships, getRecommendations, applyToInternship, getMyApplicat
 import InternshipCard from '../../components/InternshipCard';
 import ScoreBar from '../../components/ScoreBar';
 
+const PAGE_SIZE = 6; // results per page
+
 export default function CandidateDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -23,6 +25,10 @@ export default function CandidateDashboard() {
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState({ location: '', type: '' });
 
+  // Pagination state
+  const [recPage, setRecPage] = useState(1);
+  const [searchPage, setSearchPage] = useState(1);
+
   useEffect(() => {
     loadData();
   }, []);
@@ -40,6 +46,7 @@ export default function CandidateDashboard() {
 
   const handleSearch = async () => {
     setSearchLoading(true);
+    setSearchPage(1); // reset pagination on new search
     try {
       const res = await searchInternships({ query, ...filters, skills: user?.skills });
       setSearchResults(res.data.results || []);
@@ -73,6 +80,12 @@ export default function CandidateDashboard() {
 
   const appliedIds = new Set(myApplications.map((a) => a.internship?._id));
   const getAppStatus = (id) => myApplications.find((a) => a.internship?._id === id)?.status;
+
+  // Pagination helpers
+  const paginatedRecs = recommendations.slice(0, recPage * PAGE_SIZE);
+  const hasMoreRecs = paginatedRecs.length < recommendations.length;
+  const paginatedSearch = searchResults.slice(0, searchPage * PAGE_SIZE);
+  const hasMoreSearch = paginatedSearch.length < searchResults.length;
 
   const tabItems = [
     { key: 'recommendations', label: '⚡ AI Recommendations' },
@@ -172,11 +185,11 @@ export default function CandidateDashboard() {
             ) : (
               <>
                 <div style={{ marginBottom: 16, color: 'var(--text-secondary)', fontSize: 14 }}>
-                  ⚡ Top <strong style={{ color: 'var(--text-primary)' }}>{recommendations.length}</strong> internships ranked by AI (BM25 + ANN + Skill Match + Location)
+                  ⚡ Showing <strong style={{ color: 'var(--text-primary)' }}>{paginatedRecs.length}</strong> of <strong style={{ color: 'var(--text-primary)' }}>{recommendations.length}</strong> internships ranked by AI
                 </div>
                 <div className="grid-2">
-                  {recommendations.map(({ internship, rankScore, skillOverlapScore }, idx) => (
-                    <div key={internship._id} style={{ animationDelay: `${idx * 0.05}s` }} className="animate-fade-up">
+                  {paginatedRecs.map(({ internship, rankScore, skillOverlapScore }, idx) => (
+                    <div key={internship._id} style={{ animationDelay: `${(idx % PAGE_SIZE) * 0.05}s` }} className="animate-fade-up">
                       <div style={{ marginBottom: 4 }}>
                         <span className="rank-number" style={{ fontSize: 13, marginRight: 6 }}>#{idx + 1}</span>
                       </div>
@@ -190,6 +203,14 @@ export default function CandidateDashboard() {
                     </div>
                   ))}
                 </div>
+                {/* Load More */}
+                {hasMoreRecs && (
+                  <div style={{ textAlign: 'center', marginTop: 32 }}>
+                    <button className="btn btn-secondary" onClick={() => setRecPage((p) => p + 1)} style={{ padding: '12px 40px' }}>
+                      Load More ({recommendations.length - paginatedRecs.length} remaining) ↓
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </>
@@ -210,10 +231,13 @@ export default function CandidateDashboard() {
               <>
                 <div style={{ marginBottom: 16, color: 'var(--text-secondary)', fontSize: 14 }}>
                   Found <strong style={{ color: 'var(--text-primary)' }}>{searchResults.length}</strong> results ranked by hybrid retrieval
+                  {searchResults.length > PAGE_SIZE && (
+                    <span> • Showing <strong style={{ color: 'var(--text-primary)' }}>{paginatedSearch.length}</strong></span>
+                  )}
                 </div>
                 <div className="grid-2">
-                  {searchResults.map(({ internship, scores }, idx) => (
-                    <div key={internship._id} style={{ animationDelay: `${idx * 0.04}s` }} className="animate-fade-up">
+                  {paginatedSearch.map(({ internship, scores }, idx) => (
+                    <div key={internship._id} style={{ animationDelay: `${(idx % PAGE_SIZE) * 0.04}s` }} className="animate-fade-up">
                       <InternshipCard
                         internship={internship}
                         scores={scores}
@@ -233,6 +257,14 @@ export default function CandidateDashboard() {
                     </div>
                   ))}
                 </div>
+                {/* Load More */}
+                {hasMoreSearch && (
+                  <div style={{ textAlign: 'center', marginTop: 32 }}>
+                    <button className="btn btn-secondary" onClick={() => setSearchPage((p) => p + 1)} style={{ padding: '12px 40px' }}>
+                      Load More ({searchResults.length - paginatedSearch.length} remaining) ↓
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </>
