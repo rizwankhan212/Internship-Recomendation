@@ -4,8 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { registerCandidate } from '../api/candidateApi';
 import { registerRecruiter } from '../api/recruiterApi';
 
-const SKILLS_OPTIONS = ['JavaScript', 'Python', 'React', 'Node.js', 'Machine Learning', 'Data Science', 'Java', 'Docker', 'AWS', 'TypeScript', 'MongoDB', 'SQL', 'Flutter', 'Android', 'iOS'];
-
 export default function Register() {
   const [role, setRole] = useState('candidate');
   const [form, setForm] = useState({
@@ -15,6 +13,7 @@ export default function Register() {
     // Recruiter fields
     company: '', designation: '', industry: '', companyDescription: '',
   });
+  const [skillInput, setSkillInput] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -25,6 +24,28 @@ export default function Register() {
       ...f,
       [field]: f[field].includes(val) ? f[field].filter((x) => x !== val) : [...f[field], val],
     }));
+  };
+
+  const addSkill = (raw) => {
+    const skill = raw.trim();
+    if (skill && !form.skills.some((s) => s.toLowerCase() === skill.toLowerCase())) {
+      setForm((f) => ({ ...f, skills: [...f.skills, skill] }));
+    }
+    setSkillInput('');
+  };
+
+  const removeSkill = (skill) => {
+    setForm((f) => ({ ...f, skills: f.skills.filter((s) => s !== skill) }));
+  };
+
+  const handleSkillKeyDown = (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addSkill(skillInput);
+    }
+    if (e.key === 'Backspace' && !skillInput && form.skills.length) {
+      removeSkill(form.skills[form.skills.length - 1]);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -108,14 +129,24 @@ export default function Register() {
                 </div>
               </div>
               <div className="input-group">
-                <label className="input-label">Skills (select all that apply)</label>
-                <div className="tags-row">
-                  {SKILLS_OPTIONS.map((s) => (
-                    <span key={s} className="skill-tag" style={{ cursor: 'pointer', background: form.skills.includes(s) ? 'rgba(108,99,255,0.3)' : undefined, fontWeight: form.skills.includes(s) ? 700 : 400 }} onClick={() => toggle('skills', s)}>
-                      {form.skills.includes(s) ? '✓ ' : ''}{s}
+                <label className="input-label">Skills (type and press Enter to add)</label>
+                <div className="tags-row" style={{ flexWrap: 'wrap', gap: 8, padding: form.skills.length ? '8px 0 4px' : 0 }}>
+                  {form.skills.map((s) => (
+                    <span key={s} className="skill-tag" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, fontWeight: 600, background: 'rgba(108,99,255,0.25)' }}>
+                      {s}
+                      <span onClick={() => removeSkill(s)} style={{ cursor: 'pointer', fontSize: 14, lineHeight: 1, opacity: 0.7, marginLeft: 2 }} title="Remove skill">&times;</span>
                     </span>
                   ))}
                 </div>
+                <input
+                  className="input"
+                  type="text"
+                  placeholder={form.skills.length ? 'Add another skill…' : 'e.g. JavaScript, Python, React'}
+                  value={skillInput}
+                  onChange={(e) => setSkillInput(e.target.value)}
+                  onKeyDown={handleSkillKeyDown}
+                  onBlur={() => { if (skillInput.trim()) addSkill(skillInput); }}
+                />
               </div>
               <div className="input-group">
                 <label className="input-label">Preferred Internship Types</label>
