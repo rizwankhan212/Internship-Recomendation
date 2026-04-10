@@ -3,7 +3,7 @@ const router = express.Router();
 const {
   getProfile, updateProfile, getMyInternships, postInternship,
   updateInternship, deleteInternship, getApplicants, getShortlist,
-  updateApplicationStatus, getDashboardStats,
+  updateApplicationStatus, getDashboardStats, deleteAccount,
 } = require('../controllers/recruiter.controller');
 const { protect } = require('../middleware/auth.middleware');
 const { authorize } = require('../middleware/role.middleware');
@@ -12,6 +12,7 @@ router.use(protect, authorize('recruiter'));
 
 router.get('/me', getProfile);
 router.put('/me', updateProfile);
+router.delete('/me', deleteAccount);
 router.get('/dashboard/stats', getDashboardStats);
 router.get('/internships', getMyInternships);
 router.post('/internships', postInternship);

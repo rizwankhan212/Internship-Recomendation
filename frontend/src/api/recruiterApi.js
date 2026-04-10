@@ -16,6 +16,7 @@ export const registerRecruiter = (data) => api.post('/auth/register/recruiter', 
 // ── Recruiter Profile ───────────────────────────────────────────────────────
 export const getRecruiterProfile = () => api.get('/recruiters/me');
 export const updateRecruiterProfile = (data) => api.put('/recruiters/me', data);
+export const deleteRecruiterAccount = () => api.delete('/recruiters/me');
 export const getDashboardStats = () => api.get('/recruiters/dashboard/stats');
 
 // ── Internship Management ────────────────────────────────────────────────────

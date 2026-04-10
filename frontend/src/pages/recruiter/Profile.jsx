@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getRecruiterProfile, updateRecruiterProfile } from '../../api/recruiterApi';
+import { getRecruiterProfile, updateRecruiterProfile, deleteRecruiterAccount } from '../../api/recruiterApi';
 
 export default function RecruiterProfile() {
-  const { user, setUser } = useAuth();
+  const { user, setUser, logout } = useAuth();
+  const navigate = useNavigate();
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [alert, setAlert] = useState(null);
 
   useEffect(() => {
@@ -97,6 +100,33 @@ export default function RecruiterProfile() {
             {saving ? 'Saving...' : '💾 Save Profile'}
           </button>
         </form>
+
+        {/* Danger Zone */}
+        <div className="card" style={{ marginTop: 32, border: '1px solid var(--red)', background: 'rgba(239,69,101,0.04)' }}>
+          <div className="section-title" style={{ color: 'var(--red)' }}>⚠️ Danger Zone</div>
+          <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16 }}>
+            Permanently delete your account, all internships, all applications, and uploaded resumes. This action cannot be undone.
+          </p>
+          <button
+            className="btn btn-danger"
+            disabled={deleting}
+            onClick={async () => {
+              if (!window.confirm('Are you sure? This will permanently delete your account, all internships, and all candidate applications.')) return;
+              if (!window.confirm('This CANNOT be undone. Continue?')) return;
+              setDeleting(true);
+              try {
+                await deleteRecruiterAccount();
+                logout();
+                navigate('/');
+              } catch (err) {
+                setAlert({ type: 'error', msg: err.response?.data?.message || 'Delete failed' });
+                setDeleting(false);
+              }
+            }}
+          >
+            {deleting ? 'Deleting...' : '🗑️ Delete My Account'}
+          </button>
+        </div>
       </div>
     </div>
   );

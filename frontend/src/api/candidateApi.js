@@ -20,6 +20,7 @@ export const getMe             = ()     => api.get('/auth/me');
 // ── Candidate Profile ────────────────────────────────────────────────────────
 export const getCandidateProfile   = ()     => api.get('/candidates/me');
 export const updateCandidateProfile = (data) => api.put('/candidates/me', data);
+export const deleteCandidateAccount = ()     => api.delete('/candidates/me');
 
 // ── Search & Recommendations ─────────────────────────────────────────────────
 export const searchInternships = (data)   => api.post('/candidates/search', data);

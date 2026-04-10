@@ -1,5 +1,5 @@
 """
-RecoMinds ML Backend — Windows Startup Helper
+ML Backend — Windows Startup Helper
 Activates venv if present, then launches uvicorn.
 """
 import os, sys, subprocess
@@ -17,7 +17,7 @@ def main():
     else:
         print(f"ℹ️  No venv found at {VENV} — using system Python: {python}")
 
-    print("🚀 Starting RecoMinds ML Backend on port 8001...")
+    print("🚀 Starting ML Backend on port 8001...")
     subprocess.run([
         python, "-m", "uvicorn", "main:app",
         "--host", "0.0.0.0",

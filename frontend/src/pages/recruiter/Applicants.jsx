@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getApplicants } from '../../api/recruiterApi';
+import { getApplicants, updateApplicationStatus } from '../../api/recruiterApi';
 import StatusBadge from '../../components/StatusBadge';
 import ScoreBar from '../../components/ScoreBar';
 
@@ -12,6 +12,22 @@ export default function Applicants() {
   const [page, setPage] = useState(1);
   const [expanded, setExpanded] = useState(null);
   const [resumeView, setResumeView] = useState(null);
+  const [rejecting, setRejecting] = useState(null);
+
+  const handleReject = async (appId) => {
+    if (!window.confirm('Reject this candidate? Their application and resume will be permanently deleted.')) return;
+    setRejecting(appId);
+    try {
+      await updateApplicationStatus(appId, 'not_selected');
+      setData((prev) => ({
+        ...prev,
+        applications: prev.applications.filter((a) => a._id !== appId),
+        total: prev.total - 1,
+      }));
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to reject');
+    } finally { setRejecting(null); }
+  };
 
   useEffect(() => {
     getApplicants(id, { page, limit: 50 })
@@ -62,7 +78,7 @@ export default function Applicants() {
                     <th>Overall Score</th>
                     <th>Resume</th>
                     <th>Status</th>
-                    <th>Details</th>
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -114,9 +130,19 @@ export default function Applicants() {
                           </td>
                           <td><StatusBadge status={app.status} /></td>
                           <td>
-                            <button className="btn btn-ghost btn-sm" onClick={() => setExpanded(isExp ? null : app._id)}>
-                              {isExp ? 'Hide' : 'Details'}
-                            </button>
+                            <div style={{ display: 'flex', gap: 6 }}>
+                              <button className="btn btn-ghost btn-sm" onClick={() => setExpanded(isExp ? null : app._id)}>
+                                {isExp ? 'Hide' : 'Details'}
+                              </button>
+                              <button
+                                className="btn btn-danger btn-sm"
+                                style={{ fontSize: 12 }}
+                                onClick={() => handleReject(app._id)}
+                                disabled={rejecting === app._id}
+                              >
+                                {rejecting === app._id ? '...' : '✕ Reject'}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                         {isExp && (

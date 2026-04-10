@@ -1,7 +1,7 @@
 @echo off
 echo.
 echo =========================================================
-echo   RecoMinds — Full 3-Tier Stack Startup
+echo   Intern's Home — Full 3-Tier Stack Startup
 echo =========================================================
 echo.
 
@@ -11,13 +11,13 @@ echo.
 
 echo [2/5] Starting Python ML Backend (port 8001)...
 echo       Libraries: sentence-transformers, ChromaDB, rank-bm25, LightGBM, scipy
-start "RecoMinds ML Backend" cmd /k "cd ml_backend && python run.py"
+start " ML Backend" cmd /k "cd ml_backend && python run.py"
 echo       Waiting 8s for model to load...
 timeout /t 8 /nobreak >nul
 
 echo.
 echo [3/5] Starting Express Backend (port 5000)...
-start "RecoMinds Backend" cmd /k "cd backend && node app.js"
+start "Backend" cmd /k "cd backend && node app.js"
 timeout /t 3 /nobreak >nul
 
 echo.
@@ -26,7 +26,7 @@ echo       Run manually if needed: cd backend ^&^& npm run seed
 echo.
 
 echo [5/5] Starting React Frontend (port 5173)...
-start "RecoMinds Frontend" cmd /k "cd frontend && npm run dev"
+start "Frontend" cmd /k "cd frontend && npm run dev"
 
 echo.
 echo =========================================================

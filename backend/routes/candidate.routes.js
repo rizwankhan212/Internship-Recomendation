@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
   getProfile, updateProfile, searchInternships, getRecommendations,
-  applyToInternship, getMyApplications, getApplicationStatus, getAllCandidates,
+  applyToInternship, getMyApplications, getApplicationStatus, getAllCandidates, deleteAccount,
 } = require('../controllers/candidate.controller');
 const { protect } = require('../middleware/auth.middleware');
 const { authorize } = require('../middleware/role.middleware');
@@ -14,6 +14,7 @@ router.use(protect);
 // Candidate-only routes
 router.get('/me', authorize('candidate'), getProfile);
 router.put('/me', authorize('candidate'), updateProfile);
+router.delete('/me', authorize('candidate'), deleteAccount);
 router.post('/search', authorize('candidate'), searchInternships);
 router.get('/recommendations', authorize('candidate'), getRecommendations);
 router.post('/apply/:internshipId', authorize('candidate'), upload.single('resume'), applyToInternship);

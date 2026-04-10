@@ -112,7 +112,27 @@ exports.deleteInternship = async (req, res) => {
     // Remove from Python ML / ChromaDB
     ml.deleteInternshipEmbedding(internship._id.toString()).catch(console.error);
 
-    res.json({ success: true, message: 'Internship deleted' });
+    // Delete all applications for this internship + their resumes from Cloudinary
+    const applications = await Application.find({ internship: req.params.id });
+    if (applications.length > 0) {
+      const cloudinary = require('cloudinary').v2;
+      for (const app of applications) {
+        if (app.resumePath) {
+          try {
+            const parts = app.resumePath.split('/upload/');
+            if (parts[1]) {
+              const publicId = parts[1].split('/').slice(1).join('/').replace(/\.[^/.]+$/, '');
+              await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+            }
+          } catch (cloudErr) {
+            console.error('Cloudinary delete error:', cloudErr.message);
+          }
+        }
+      }
+      await Application.deleteMany({ internship: req.params.id });
+    }
+
+    res.json({ success: true, message: 'Internship and all related applications deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -188,9 +208,77 @@ exports.updateApplicationStatus = async (req, res) => {
       .populate('internship', 'title company');
     if (!application) return res.status(404).json({ success: false, message: 'Not found' });
 
+    // If rejected — delete resume from Cloudinary and remove the application
+    if (status === 'not_selected') {
+      if (application.resumePath) {
+        try {
+          const cloudinary = require('cloudinary').v2;
+          // Extract public_id from Cloudinary URL
+          // URL format: https://res.cloudinary.com/<cloud>/raw/upload/v123/interns-home/resumes/<filename>
+          const parts = application.resumePath.split('/upload/');
+          if (parts[1]) {
+            const publicId = parts[1].split('/').slice(1).join('/').replace(/\.[^/.]+$/, '');
+            await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+          }
+        } catch (cloudErr) {
+          console.error('Cloudinary delete error:', cloudErr.message);
+        }
+      }
+      await Application.findByIdAndDelete(application._id);
+      return res.json({ success: true, deleted: true, message: 'Application rejected and removed' });
+    }
+
     application.status = status;
     await application.save();
     res.json({ success: true, application });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ── Delete Account ────────────────────────────────────────────────────────────
+exports.deleteAccount = async (req, res) => {
+  try {
+    const recruiterId = req.user.id;
+
+    // Find all internships by this recruiter
+    const internships = await Internship.find({ recruiter: recruiterId });
+
+    const cloudinary = require('cloudinary').v2;
+
+    for (const internship of internships) {
+      // Find all applications for this internship
+      const applications = await Application.find({ internship: internship._id });
+
+      // Delete resumes from Cloudinary
+      for (const app of applications) {
+        if (app.resumePath) {
+          try {
+            const parts = app.resumePath.split('/upload/');
+            if (parts[1]) {
+              const publicId = parts[1].split('/').slice(1).join('/').replace(/\.[^/.]+$/, '');
+              await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+            }
+          } catch (cloudErr) {
+            console.error('Cloudinary delete error:', cloudErr.message);
+          }
+        }
+      }
+
+      // Delete all applications for this internship
+      await Application.deleteMany({ internship: internship._id });
+
+      // Delete ChromaDB embedding for internship
+      ml.deleteInternshipEmbedding(internship._id.toString()).catch(console.error);
+    }
+
+    // Delete all internships
+    await Internship.deleteMany({ recruiter: recruiterId });
+
+    // Delete the recruiter
+    await Recruiter.findByIdAndDelete(recruiterId);
+
+    res.json({ success: true, message: 'Account and all data deleted' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

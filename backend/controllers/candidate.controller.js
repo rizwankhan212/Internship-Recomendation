@@ -193,3 +193,39 @@ exports.getAllCandidates = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// ── Delete Account ────────────────────────────────────────────────────────────
+exports.deleteAccount = async (req, res) => {
+  try {
+    const candidateId = req.user.id;
+
+    // Find all applications by this candidate
+    const applications = await Application.find({ candidate: candidateId });
+
+    // Delete resumes from Cloudinary
+    const cloudinary = require('cloudinary').v2;
+    for (const app of applications) {
+      if (app.resumePath) {
+        try {
+          const parts = app.resumePath.split('/upload/');
+          if (parts[1]) {
+            const publicId = parts[1].split('/').slice(1).join('/').replace(/\.[^/.]+$/, '');
+            await cloudinary.uploader.destroy(publicId, { resource_type: 'raw' });
+          }
+        } catch (cloudErr) {
+          console.error('Cloudinary delete error:', cloudErr.message);
+        }
+      }
+    }
+
+    // Delete all applications
+    await Application.deleteMany({ candidate: candidateId });
+
+    // Delete the candidate
+    await Candidate.findByIdAndDelete(candidateId);
+
+    res.json({ success: true, message: 'Account and all data deleted' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
