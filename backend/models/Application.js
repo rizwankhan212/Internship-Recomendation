@@ -20,6 +20,7 @@ const ApplicationSchema = new mongoose.Schema(
     locationScore: { type: Number, default: 0 },
 
     coverLetter: { type: String, default: '' },
+    resumePath: { type: String, default: '' },
     appliedAt: { type: Date, default: Date.now },
   },
   { timestamps: true }

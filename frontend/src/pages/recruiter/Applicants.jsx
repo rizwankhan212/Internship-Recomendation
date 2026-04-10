@@ -11,6 +11,7 @@ export default function Applicants() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [expanded, setExpanded] = useState(null);
+  const [resumeView, setResumeView] = useState(null);
 
   useEffect(() => {
     getApplicants(id, { page, limit: 50 })
@@ -100,15 +101,13 @@ export default function Applicants() {
                           </td>
                           <td>
                             {app.resumePath ? (
-                              <a
-                                href={`http://localhost:5000/${app.resumePath}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                              <button
                                 className="btn btn-ghost btn-sm"
                                 style={{ fontSize: 12, gap: 4 }}
+                                onClick={() => setResumeView({ url: app.resumePath, name: c?.name || 'Candidate' })}
                               >
                                 📄 View
-                              </a>
+                              </button>
                             ) : (
                               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>No resume</span>
                             )}
@@ -151,6 +150,36 @@ export default function Applicants() {
               </table>
             </div>
           </>
+        )}
+        {/* Resume Viewer Modal */}
+        {resumeView && (
+          <div className="modal-overlay" onClick={() => setResumeView(null)}>
+            <div
+              className="modal-card"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: 900, width: '95vw', height: '85vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 24px', borderBottom: '1px solid var(--border)' }}>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>📄 {resumeView.name}'s Resume</div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <a
+                    href={resumeView.url}
+                    download
+                    className="btn btn-secondary btn-sm"
+                    style={{ fontSize: 12 }}
+                  >
+                    ⬇ Download
+                  </a>
+                  <button className="btn btn-ghost btn-sm" onClick={() => setResumeView(null)} style={{ fontSize: 16, padding: '4px 10px' }}>✕</button>
+                </div>
+              </div>
+              <iframe
+                src={`https://docs.google.com/gview?url=${encodeURIComponent(resumeView.url)}&embedded=true`}
+                title="Resume Viewer"
+                style={{ flex: 1, width: '100%', border: 'none' }}
+              />
+            </div>
+          </div>
         )}
       </div>
     </div>

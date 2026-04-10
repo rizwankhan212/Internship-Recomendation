@@ -6,6 +6,7 @@ const {
 } = require('../controllers/candidate.controller');
 const { protect } = require('../middleware/auth.middleware');
 const { authorize } = require('../middleware/role.middleware');
+const upload = require('../middleware/upload.middleware');
 
 // All routes require authentication as a candidate
 router.use(protect);
@@ -15,7 +16,7 @@ router.get('/me', authorize('candidate'), getProfile);
 router.put('/me', authorize('candidate'), updateProfile);
 router.post('/search', authorize('candidate'), searchInternships);
 router.get('/recommendations', authorize('candidate'), getRecommendations);
-router.post('/apply/:internshipId', authorize('candidate'), applyToInternship);
+router.post('/apply/:internshipId', authorize('candidate'), upload.single('resume'), applyToInternship);
 router.get('/applications', authorize('candidate'), getMyApplications);
 router.get('/applications/:id', authorize('candidate'), getApplicationStatus);
 

@@ -105,6 +105,11 @@ exports.applyToInternship = async (req, res) => {
     const { internshipId } = req.params;
     const { coverLetter = '' } = req.body;
 
+    // Resume is required
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Resume file is required' });
+    }
+
     const internship = await Internship.findById(internshipId);
     if (!internship?.isActive) {
       return res.status(404).json({ success: false, message: 'Internship not found or inactive' });
@@ -118,11 +123,14 @@ exports.applyToInternship = async (req, res) => {
     // Score this pair through Python ML backend
     const [ranked] = await ml.rankInternships(candidate.toObject(), [internship.toObject()], '', 1);
 
+    const resumePath = req.file.path; // Cloudinary URL
+
     const application = await Application.create({
       candidate:         req.user.id,
       internship:        internshipId,
       recruiter:         internship.recruiter,
       coverLetter,
+      resumePath,
       rankScore:         ranked?.rankScore         || 0,
       bm25Score:         ranked?.bm25Score         || 0,
       similarityScore:   ranked?.similarityScore   || 0,
