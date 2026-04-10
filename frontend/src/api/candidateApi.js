@@ -26,7 +26,9 @@ export const searchInternships = (data)   => api.post('/candidates/search', data
 export const getRecommendations = ()      => api.get('/candidates/recommendations');
 
 // ── Applications ──────────────────────────────────────────────────────────────
-export const applyToInternship  = (id, data) => api.post(`/candidates/apply/${id}`, data);
+export const applyToInternship  = (id, formData) => api.post(`/candidates/apply/${id}`, formData, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+});
 export const getMyApplications  = ()          => api.get('/candidates/applications');
 export const getApplicationStatus = (id)      => api.get(`/candidates/applications/${id}`);
 

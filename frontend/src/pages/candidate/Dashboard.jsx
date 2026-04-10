@@ -17,6 +17,7 @@ export default function CandidateDashboard() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [applyModal, setApplyModal] = useState(null);
   const [coverLetter, setCoverLetter] = useState('');
+  const [resumeFile, setResumeFile] = useState(null);
   const [applying, setApplying] = useState(false);
   const [alert, setAlert] = useState(null);
   const [query, setQuery] = useState('');
@@ -50,12 +51,20 @@ export default function CandidateDashboard() {
 
   const handleApply = async () => {
     if (!applyModal) return;
+    if (!resumeFile) {
+      setAlert({ type: 'error', msg: 'Please upload your resume before applying.' });
+      return;
+    }
     setApplying(true);
     try {
-      await applyToInternship(applyModal._id, { coverLetter });
+      const formData = new FormData();
+      formData.append('resume', resumeFile);
+      formData.append('coverLetter', coverLetter);
+      await applyToInternship(applyModal._id, formData);
       setAlert({ type: 'success', msg: `Applied to ${applyModal.title} successfully!` });
       setApplyModal(null);
       setCoverLetter('');
+      setResumeFile(null);
       await loadData();
     } catch (err) {
       setAlert({ type: 'error', msg: err.response?.data?.message || 'Apply failed' });
@@ -241,6 +250,20 @@ export default function CandidateDashboard() {
                 {applyModal.skills?.map((s) => <span key={s} className="skill-tag">{s}</span>)}
               </div>
               <div className="input-group" style={{ marginBottom: 20 }}>
+                <label className="input-label">Resume (PDF, DOC, DOCX — max 5 MB) *</label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={(e) => setResumeFile(e.target.files[0] || null)}
+                  style={{ fontSize: 14, color: 'var(--text-primary)' }}
+                />
+                {resumeFile && (
+                  <div style={{ fontSize: 12, color: 'var(--green)', marginTop: 4 }}>
+                    ✓ {resumeFile.name} ({(resumeFile.size / 1024).toFixed(0)} KB)
+                  </div>
+                )}
+              </div>
+              <div className="input-group" style={{ marginBottom: 20 }}>
                 <label className="input-label">Cover Letter (optional)</label>
                 <textarea
                   className="input"
@@ -251,8 +274,8 @@ export default function CandidateDashboard() {
                 />
               </div>
               <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
-                <button className="btn btn-secondary" onClick={() => setApplyModal(null)}>Cancel</button>
-                <button className="btn btn-primary" onClick={handleApply} disabled={applying}>
+                <button className="btn btn-secondary" onClick={() => { setApplyModal(null); setResumeFile(null); }}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleApply} disabled={applying || !resumeFile}>
                   {applying ? 'Applying...' : 'Submit Application →'}
                 </button>
               </div>

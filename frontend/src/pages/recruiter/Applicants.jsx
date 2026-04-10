@@ -59,6 +59,7 @@ export default function Applicants() {
                     <th>CGPA</th>
                     <th>Skills Match</th>
                     <th>Overall Score</th>
+                    <th>Resume</th>
                     <th>Status</th>
                     <th>Details</th>
                   </tr>
@@ -97,6 +98,21 @@ export default function Applicants() {
                               <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--accent-2)', minWidth: 36 }}>{Math.round(app.rankScore * 100)}%</span>
                             </div>
                           </td>
+                          <td>
+                            {app.resumePath ? (
+                              <a
+                                href={`http://localhost:5000/${app.resumePath}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn btn-ghost btn-sm"
+                                style={{ fontSize: 12, gap: 4 }}
+                              >
+                                📄 View
+                              </a>
+                            ) : (
+                              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>No resume</span>
+                            )}
+                          </td>
                           <td><StatusBadge status={app.status} /></td>
                           <td>
                             <button className="btn btn-ghost btn-sm" onClick={() => setExpanded(isExp ? null : app._id)}>
@@ -106,7 +122,7 @@ export default function Applicants() {
                         </tr>
                         {isExp && (
                           <tr key={`${app._id}-exp`}>
-                            <td colSpan={8} style={{ padding: '16px 20px', background: 'rgba(255,255,255,0.02)' }}>
+                            <td colSpan={10} style={{ padding: '16px 20px', background: 'rgba(108,99,255,0.03)' }}>
                               <div className="grid-2" style={{ gap: 20 }}>
                                 <div>
                                   <div style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 8 }}>Ranking Scores</div>

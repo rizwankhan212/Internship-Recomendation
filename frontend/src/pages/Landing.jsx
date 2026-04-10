@@ -38,7 +38,7 @@ export default function Landing() {
 
 
       <h1 className="hero-title">
-        Find Your Perfect<br />Internship with AI
+        Find Your Perfect<br />Internship
       </h1>
 
 
@@ -47,20 +47,6 @@ export default function Landing() {
         <Link to="/login" className="btn btn-secondary btn-lg">Sign In →</Link>
       </div>
 
-      
-
-      <div className="hero-stats">
-        <div className="hero-stat"><div className="hero-stat-num">300+</div><div className="hero-stat-label">Candidates</div></div>
-        <div className="hero-stat"><div className="hero-stat-num">20</div><div className="hero-stat-label">Internships</div></div>
-        <div className="hero-stat"><div className="hero-stat-num">5</div><div className="hero-stat-label">Top Companies</div></div>
-        <div className="hero-stat"><div className="hero-stat-num">700+</div><div className="hero-stat-label">Applications</div></div>
-        <div className="hero-stat">
-          <div className="hero-stat-num" style={{ color: chromaStatus?.available ? 'var(--green)' : 'var(--yellow)', fontSize: 18 }}>
-            {chromaStatus === null ? '...' : chromaStatus.available ? 'LIVE' : 'FALLBACK'}
-          </div>
-          <div className="hero-stat-label">ChromaDB</div>
-        </div>
-      </div>
     </div>
   );
 }
