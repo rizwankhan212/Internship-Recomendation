@@ -6,10 +6,10 @@
 require('dotenv').config();
 const mongoose  = require('mongoose');
 const bcrypt    = require('bcryptjs');
-const Candidate  = require('./src/models/Candidate');
-const Recruiter  = require('./src/models/Recruiter');
-const Internship = require('./src/models/Internship');
-const Application = require('./src/models/Application');
+const Candidate  = require('./models/Candidate');
+const Recruiter  = require('./models/Recruiter');
+const Internship = require('./models/Internship');
+const Application = require('./models/Application');
 const {
   initChroma,
   upsertInternshipEmbedding,
@@ -17,8 +17,8 @@ const {
   candidateToEmbedding,
   internshipToEmbedding,
   isChromaAvailable,
-} = require('./src/services/vectorSearch.service');
-const { rankInternshipsForCandidate } = require('./src/services/rankingEngine.service');
+} = require('./services/vectorSearch.service');
+const { rankInternshipsForCandidate } = require('./services/rankingEngine.service');
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/recomids';
 
