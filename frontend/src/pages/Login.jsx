@@ -80,12 +80,7 @@ export default function Login() {
           </button>
         </form>
 
-        {role === 'recruiter' && (
-          <div className="alert alert-info" style={{ marginTop: 16 }}>
-            <strong>Demo credentials:</strong><br />
-            priya@google.com / Google@123
-          </div>
-        )}
+      
 
         <div className="auth-divider" style={{ marginTop: 20 }}>
           Don't have an account? <Link to="/register" className="auth-link">Register here</Link>

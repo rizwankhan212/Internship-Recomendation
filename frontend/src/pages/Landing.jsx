@@ -54,7 +54,6 @@ export default function Landing() {
         <div className="hero-stat"><div className="hero-stat-num">20</div><div className="hero-stat-label">Internships</div></div>
         <div className="hero-stat"><div className="hero-stat-num">5</div><div className="hero-stat-label">Top Companies</div></div>
         <div className="hero-stat"><div className="hero-stat-num">700+</div><div className="hero-stat-label">Applications</div></div>
-        <div className="hero-stat"><div className="hero-stat-num">BM25+ANN</div><div className="hero-stat-label">Hybrid Retrieval</div></div>
         <div className="hero-stat">
           <div className="hero-stat-num" style={{ color: chromaStatus?.available ? 'var(--green)' : 'var(--yellow)', fontSize: 18 }}>
             {chromaStatus === null ? '...' : chromaStatus.available ? 'LIVE' : 'FALLBACK'}
