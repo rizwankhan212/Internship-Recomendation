@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const CandidateSchema = new mongoose.Schema(
   {
@@ -20,6 +21,10 @@ const CandidateSchema = new mongoose.Schema(
 
     // Vector embedding (50-dim, stored for ANN search)
     profileEmbedding: { type: [Number], default: [] },
+
+    // Password reset
+    resetPasswordToken:  { type: String },
+    resetPasswordExpire: { type: Date },
   },
   { timestamps: true }
 );
@@ -33,6 +38,13 @@ CandidateSchema.pre('save', async function (next) {
 
 CandidateSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+CandidateSchema.methods.generateResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  this.resetPasswordExpire = Date.now() + 30 * 60 * 1000; // 30 minutes
+  return resetToken;
 };
 
 module.exports = mongoose.model('Candidate', CandidateSchema);

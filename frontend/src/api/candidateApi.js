@@ -16,6 +16,8 @@ api.interceptors.request.use((config) => {
 export const registerCandidate = (data) => api.post('/auth/register/candidate', data);
 export const loginUser         = (data) => api.post('/auth/login', data);
 export const getMe             = ()     => api.get('/auth/me');
+export const forgotPassword    = (data) => api.post('/auth/forgot-password', data);
+export const resetPassword     = (token, data) => api.post(`/auth/reset-password/${token}`, data);
 
 // ── Candidate Profile ────────────────────────────────────────────────────────
 export const getCandidateProfile   = ()     => api.get('/candidates/me');

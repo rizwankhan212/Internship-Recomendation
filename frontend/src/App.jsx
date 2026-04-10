@@ -12,6 +12,8 @@ import RecruiterProfile from './pages/recruiter/Profile';
 import PostInternship from './pages/recruiter/PostInternship';
 import Applicants from './pages/recruiter/Applicants';
 import Shortlist from './pages/recruiter/Shortlist';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 const PrivateRoute = ({ children, requiredRole }) => {
   const { user, role, loading } = useAuth();
@@ -31,6 +33,8 @@ export default function App() {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={user ? <Navigate to={role === 'recruiter' ? '/recruiter' : '/candidate'} /> : <Login />} />
         <Route path="/register" element={user ? <Navigate to={role === 'recruiter' ? '/recruiter' : '/candidate'} /> : <Register />} />
+        <Route path="/forgot-password" element={user ? <Navigate to="/" /> : <ForgotPassword />} />
+        <Route path="/reset-password/:token" element={user ? <Navigate to="/" /> : <ResetPassword />} />
 
         {/* Candidate Routes */}
         <Route path="/candidate" element={<PrivateRoute requiredRole="candidate"><CandidateDashboard /></PrivateRoute>} />

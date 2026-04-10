@@ -18,13 +18,18 @@ def main():
         print(f"ℹ️  No venv found at {VENV} — using system Python: {python}")
 
     print("🚀 Starting ML Backend on port 8001...")
+
+    # Force unbuffered output so print() shows immediately on Windows
+    env = os.environ.copy()
+    env["PYTHONUNBUFFERED"] = "1"
+
     subprocess.run([
         python, "-m", "uvicorn", "main:app",
         "--host", "0.0.0.0",
         "--port", "8001",
         "--reload",
         "--log-level", "info",
-    ])
+    ], env=env)
 
 if __name__ == "__main__":
     main()

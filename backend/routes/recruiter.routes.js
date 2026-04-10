@@ -7,19 +7,23 @@ const {
 } = require('../controllers/recruiter.controller');
 const { protect } = require('../middleware/auth.middleware');
 const { authorize } = require('../middleware/role.middleware');
+const {
+  updateRecruiterProfileRules, postInternshipRules,
+  updateInternshipRules, updateStatusRules, mongoIdParam,
+} = require('../middleware/validate.middleware');
 
 router.use(protect, authorize('recruiter'));
 
 router.get('/me', getProfile);
-router.put('/me', updateProfile);
+router.put('/me', updateRecruiterProfileRules, updateProfile);
 router.delete('/me', deleteAccount);
 router.get('/dashboard/stats', getDashboardStats);
 router.get('/internships', getMyInternships);
-router.post('/internships', postInternship);
-router.put('/internships/:id', updateInternship);
-router.delete('/internships/:id', deleteInternship);
-router.get('/internships/:id/applications', getApplicants);
-router.get('/internships/:id/shortlist', getShortlist);
-router.put('/applications/:appId/status', updateApplicationStatus);
+router.post('/internships', postInternshipRules, postInternship);
+router.put('/internships/:id', updateInternshipRules, updateInternship);
+router.delete('/internships/:id', ...mongoIdParam('id'), deleteInternship);
+router.get('/internships/:id/applications', ...mongoIdParam('id'), getApplicants);
+router.get('/internships/:id/shortlist', ...mongoIdParam('id'), getShortlist);
+router.put('/applications/:appId/status', updateStatusRules, updateApplicationStatus);
 
 module.exports = router;

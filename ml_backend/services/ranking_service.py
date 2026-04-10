@@ -11,6 +11,7 @@ LightGBM is used to apply a non-linear score combination via a pre-built
 gradient-boosted model. Falls back to weighted sum if LightGBM is unavailable.
 """
 
+import os
 import logging
 import numpy as np
 from typing import List, Dict, Any, Optional
@@ -63,29 +64,44 @@ def _normalize(scores: List[float]) -> List[float]:
     return ((arr - mn) / rng).tolist()
 
 
-# ── LightGBM model (lazy loaded) ──────────────────────────────────────────────
+# ── LightGBM model ─────────────────────────────────────────────────────────────
 
 _lgbm_model = None
 _lgbm_tried  = False
 
+MODEL_PATH = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "models", "lgbm_ranker.pkl"))
+print(f"🔍 LightGBM model path: {MODEL_PATH} (exists={os.path.exists(MODEL_PATH)})", flush=True)
+
 
 def _get_lgbm_model():
     """
-    Load or build a tiny synthetic LightGBM ranker.
-    In production this would be trained on real click-through data.
-    Here we train on 500 synthetic examples to demonstrate the pipeline.
+    Load the pre-trained LightGBM ranker from disk.
+    Falls back to synthetic training if saved model not found.
+    Run `python train_ranker.py` to train on real job data.
     """
     global _lgbm_model, _lgbm_tried
     if _lgbm_tried:
         return _lgbm_model
     _lgbm_tried = True
+
+    # Try loading pre-trained model first
+    if os.path.exists(MODEL_PATH):
+        try:
+            import pickle
+            with open(MODEL_PATH, "rb") as f:
+                _lgbm_model = pickle.load(f)
+            print(f"✅ LightGBM ranker loaded from {MODEL_PATH}", flush=True)
+            return _lgbm_model
+        except Exception as e:
+            print(f"⚠️  Failed to load saved model ({e}). Falling back.", flush=True)
+
+    # Fallback: train on synthetic data
     try:
         import lightgbm as lgb
+        logger.warning("⚠️  No saved model found. Training on synthetic data. Run `python train_ranker.py` for better results.")
         rng = np.random.default_rng(42)
         N = 500
-        # Synthetic features: [bm25, vector, skill, location]
         X = rng.random((N, 4))
-        # Label: weighted sum + noise (simulates relevance labels)
         y = (
             WEIGHTS["bm25"]     * X[:, 0] +
             WEIGHTS["vector"]   * X[:, 1] +
@@ -94,19 +110,11 @@ def _get_lgbm_model():
             rng.normal(0, 0.05, N)
         ).clip(0, 1)
         y_bin = (y > 0.5).astype(int)
-
-        params = {
-            "objective":   "binary",
-            "metric":      "binary_logloss",
-            "num_leaves":  15,
-            "n_estimators": 50,
-            "learning_rate": 0.1,
-            "verbose": -1,
-        }
-        model = lgb.LGBMClassifier(**params)
+        model = lgb.LGBMClassifier(objective="binary", metric="binary_logloss",
+                                    num_leaves=15, n_estimators=50, learning_rate=0.1, verbose=-1)
         model.fit(X, y_bin)
         _lgbm_model = model
-        logger.info("✅ LightGBM ranker trained on synthetic data")
+        logger.info("✅ LightGBM ranker trained on synthetic data (fallback)")
     except Exception as e:
         logger.warning(f"⚠️  LightGBM unavailable ({e}). Using weighted-sum ranking.")
         _lgbm_model = None

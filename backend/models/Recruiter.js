@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const RecruiterSchema = new mongoose.Schema(
   {
@@ -15,6 +16,10 @@ const RecruiterSchema = new mongoose.Schema(
     website: { type: String, default: '' },
     industry: { type: String, default: 'Technology' },
     companySize: { type: String, default: '' }, // e.g. "100-500"
+
+    // Password reset
+    resetPasswordToken:  { type: String },
+    resetPasswordExpire: { type: Date },
   },
   { timestamps: true }
 );
@@ -27,6 +32,13 @@ RecruiterSchema.pre('save', async function (next) {
 
 RecruiterSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+RecruiterSchema.methods.generateResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+  this.resetPasswordExpire = Date.now() + 30 * 60 * 1000; // 30 minutes
+  return resetToken;
 };
 
 module.exports = mongoose.model('Recruiter', RecruiterSchema);

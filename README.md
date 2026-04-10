@@ -1,94 +1,178 @@
-#Intern's Home
+# RecoMinds — AI-Powered Internship Recommendation Platform
 
-> AI-powered internship recommendation platform using Hybrid Retrieval (BM25 + ChromaDB ANN), LambdaMART ranking, and Greedy Allocation.
+> Smart internship matching using Hybrid Retrieval (BM25 + ChromaDB ANN), LightGBM ranking, and Greedy Allocation.
 
 ## Architecture
 
 ```
-Candidate ──→ Search Query ──→ BM25 + ChromaDB ANN ──→ LambdaMART Rank ──→ Top 10
-Candidate ──→ Apply         ──→ MongoDB Application  ──→ Greedy Allocator ──→ Shortlist 20
-Recruiter ──→ View Shortlist ──→ Select / Reject    ──→ Status visible to candidate
+┌──────────────┐     ┌──────────────────┐     ┌─────────────────────┐
+│   Frontend   │────▶│  Express Backend  │────▶│  FastAPI ML Backend │
+│  React/Vite  │     │  Node.js/Mongoose │     │  Python/LightGBM    │
+│  Port: 5173  │     │    Port: 5000     │     │    Port: 8001       │
+└──────────────┘     └────────┬─────────┘     └──────────┬──────────┘
+                              │                          │
+                     ┌────────▼─────────┐       ┌────────▼──────────┐
+                     │     MongoDB      │       │     ChromaDB      │
+                     │  (Primary DB)    │       │  (Vector Search)  │
+                     └──────────────────┘       └───────────────────┘
+```
+
+### How Ranking Works
+
+```
+Candidate Search Query
+    │
+    ├──▶ BM25 Keyword Scoring (35%)
+    ├──▶ ChromaDB ANN Semantic Similarity (30%)  ← 384-dim sentence-transformers
+    ├──▶ Skill Overlap — Jaccard Similarity (25%)
+    └──▶ Location + Type Match (10%)
+         │
+         ▼
+    LightGBM Classifier (trained on 1068 real job listings)
+         │
+         ▼
+    Ranked Results → Top 10 Recommendations
 ```
 
 ## Tech Stack
 
 | Component | Technology |
 |---|---|
+| Frontend | React 18 + Vite + React Router |
 | Backend | Node.js + Express.js |
-| Primary DB | MongoDB (Mongoose) |
-| **Vector DB** | **ChromaDB** (`hnsw:space=cosine`) |
-| Auth | JWT (role: candidate / recruiter) |
-| Ranking | BM25 + 50-dim TF-IDF embeddings via ChromaDB ANN |
-| Shortlisting | Greedy Real-time Allocator + Batch ILP Solver |
-| Frontend | React (Vite) + React Router |
+| Database | MongoDB (Mongoose ODM) |
+| Vector DB | ChromaDB (embedded, `hnsw:space=cosine`) |
+| ML Backend | Python FastAPI |
+| Embeddings | `all-MiniLM-L6-v2` (384-dim, sentence-transformers) |
+| Ranking | LightGBM Binary Classifier |
+| BM25 | `rank-bm25` (Python) |
+| Shortlisting | Greedy Allocator + ILP Solver (SciPy) |
+| Auth | JWT (role-based: candidate / recruiter) |
+| File Storage | Cloudinary (resume uploads) |
+| Resume Parsing | Google Gemini API |
+
+## Features
+
+### Candidate
+- 🔍 **AI-powered search** — Hybrid BM25 + semantic similarity ranking
+- ✨ **Smart recommendations** — Personalized top-10 internship matches
+- 📄 **Resume upload** — Cloudinary storage with AI skill extraction (Gemini)
+- 📊 **Score breakdown** — See match %, BM25, similarity, skill overlap scores
+- 🏷️ **Profile management** — Skills, location, preferred types, education
+- 📋 **Application tracking** — View status (pending → shortlisted → selected)
+- 🗑️ **Account deletion** — GDPR-compliant full data cleanup
+
+### Recruiter
+- 📝 **Post internships** — Free-form skill tagging, flexible fields
+- 👥 **View applicants** — Ranked by AI match score
+- 📄 **View resumes** — Inline viewer (Google Docs)
+- ✅ **Shortlisting** — AI-powered greedy allocation (top 20)
+- 🔄 **Application management** — Select / reject candidates
+- 📊 **Dashboard stats** — Total internships, applications, selections
+- 🗑️ **Account deletion** — Cascading cleanup (internships, applications, resumes)
+
+### ML Pipeline
+- 🧠 **LightGBM ranker** — Trained on 1068 real job listings from `job_dataset.csv`
+- 📐 **Sentence transformers** — `all-MiniLM-L6-v2` (384-dim embeddings)
+- 🗂️ **ChromaDB** — Embedded vector database for ANN search
+- 📊 **Evaluation suite** — Precision, Recall, NDCG, MAP, MRR metrics
+- 🏋️ **Training pipeline** — `train_ranker.py` for model retraining
 
 ## Setup
 
 ### Prerequisites
-- Node.js ≥ 18
-- MongoDB (local or Atlas)
-- Python ≥ 3.8 (for ChromaDB server)
+- **Node.js** ≥ 18
+- **Python** ≥ 3.8
+- **MongoDB** (local or Atlas)
+- **Cloudinary account** (for resume storage)
 
-### 1. Install ChromaDB (Python)
+### 1. Clone the repository
 ```bash
-pip install chromadb
+git clone https://github.com/rizwankhan212/Internship-Recomendation.git
+cd Internship-Recomendation
 ```
 
-### 2. Install backend dependencies
+### 2. Backend setup
 ```bash
 cd backend
 npm install
 ```
 
-### 3. Install frontend dependencies
+Create `backend/.env`:
+```env
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/recomids
+JWT_SECRET=your_strong_secret_here
+JWT_EXPIRE=7d
+ML_BACKEND_URL=http://localhost:8001
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+### 3. Frontend setup
 ```bash
 cd frontend
 npm install
 ```
 
-### 4. Configure environment
-Edit `backend/.env`:
-```env
-PORT=5000
-MONGO_URI=mongodb://localhost:27017/recomids
-JWT_SECRET=recomids_secret_superkey_sih2025
-JWT_EXPIRE=7d
-CHROMA_URL=http://localhost:8000
-CHROMA_COLLECTION_INTERNSHIPS=recomids_internships
-CHROMA_COLLECTION_CANDIDATES=recomids_candidates
+### 4. ML Backend setup
+```bash
+cd ml_backend
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+# Linux/Mac
+source venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+### 5. Train the ML model
+```bash
+cd ml_backend
+python train_ranker.py
+```
+This trains the LightGBM ranker on `job_dataset.csv` (1068 real job listings) and saves the model to `ml_backend/models/lgbm_ranker.pkl`.
+
+### 6. Evaluate the model (optional)
+```bash
+cd ml_backend
+python evaluate.py
 ```
 
 ## Running
 
-### Option A — Use the startup script (Windows)
-```
-start.bat
-```
+### Start all services (3 terminals)
 
-### Option B — Manual
-**Terminal 1 — ChromaDB:**
+**Terminal 1 — ML Backend:**
 ```bash
-chroma run --path ./chroma_db
+cd ml_backend
+python run.py
 ```
 
-**Terminal 2 — Backend:**
+**Terminal 2 — Express Backend:**
 ```bash
 cd backend
 npm run dev
 ```
 
-**Terminal 3 — Seed data:**
-```bash
-cd backend
-npm run seed
-```
-
-**Terminal 4 — Frontend:**
+**Terminal 3 — Frontend:**
 ```bash
 cd frontend
 npm run dev
 ```
 
+Open http://localhost:5173 in your browser.
+
+### Verify connections
+Express backend should show:
+```
+🚀 RecoMinds Express API  → http://localhost:5000
+✅ MongoDB Connected: localhost
+✅ Python ML Backend connected at http://localhost:8001
+```
 
 ## API Reference
 
@@ -97,45 +181,99 @@ npm run dev
 |---|---|---|
 | POST | `/api/auth/register/candidate` | Register new candidate |
 | POST | `/api/auth/register/recruiter` | Register new recruiter |
-| POST | `/api/auth/login` | Login (role in body) |
-| GET | `/api/auth/me` | Get current user |
+| POST | `/api/auth/login` | Login (returns JWT) |
+| GET | `/api/auth/me` | Get current user profile |
 
 ### Candidate APIs
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/candidates/me` | Get own profile |
-| PUT | `/api/candidates/me` | Update profile (recalculates embedding in ChromaDB) |
-| POST | `/api/candidates/search` | Hybrid search (BM25 + ChromaDB ANN) |
-| GET | `/api/candidates/recommendations` | Top 10 AI-ranked recommendations |
-| POST | `/api/candidates/apply/:id` | Apply to internship |
+| GET | `/api/candidates/me` | Get profile |
+| PUT | `/api/candidates/me` | Update profile (re-embeds in ChromaDB) |
+| POST | `/api/candidates/search` | Hybrid search (BM25 + ANN + LightGBM) |
+| GET | `/api/candidates/recommendations` | Top 10 AI recommendations |
+| POST | `/api/candidates/apply/:id` | Apply with resume + cover letter |
 | GET | `/api/candidates/applications` | List all applications |
-| GET | `/api/candidates/applications/:id` | Get application status |
+| DELETE | `/api/candidates/account` | Delete account (GDPR cleanup) |
 
 ### Recruiter APIs
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/recruiters/me` | Get recruiter profile |
-| PUT | `/api/recruiters/me` | Update recruiter profile |
+| GET | `/api/recruiters/me` | Get profile |
+| PUT | `/api/recruiters/me` | Update profile |
 | GET | `/api/recruiters/dashboard/stats` | Dashboard statistics |
-| GET | `/api/recruiters/internships` | List all posted internships |
-| POST | `/api/recruiters/internships` | Post new internship (generates ChromaDB embedding) |
-| PUT | `/api/recruiters/internships/:id` | Update internship (re-embeds in ChromaDB) |
-| DELETE | `/api/recruiters/internships/:id` | Delete internship (removes from ChromaDB) |
-| GET | `/api/recruiters/internships/:id/applications` | View all applicants (ranked by score) |
+| GET | `/api/recruiters/internships` | List posted internships |
+| POST | `/api/recruiters/internships` | Post new internship (embeds in ChromaDB) |
+| PUT | `/api/recruiters/internships/:id` | Update internship |
+| DELETE | `/api/recruiters/internships/:id` | Delete internship (cascade cleanup) |
+| GET | `/api/recruiters/internships/:id/applications` | View applicants (ranked) |
 | GET | `/api/recruiters/internships/:id/shortlist` | Run Greedy Allocator → top 20 |
-| PUT | `/api/recruiters/applications/:id/status` | Set selected / not_selected |
+| PUT | `/api/recruiters/applications/:id/status` | Update status (select/reject) |
+| DELETE | `/api/recruiters/account` | Delete account (cascade cleanup) |
 
-### ChromaDB
+### ML Backend APIs
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/chroma/status` | ChromaDB connection status |
-| GET | `/api/health` | Full health check incl. ChromaDB |
+| GET | `/health` | Health check (embedder + ChromaDB status) |
+| POST | `/api/embed/one` | Generate 384-dim embedding |
+| POST | `/api/rank` | Full hybrid ranking pipeline |
+| POST | `/api/shortlist/greedy` | Greedy allocation |
+| POST | `/api/shortlist/ilp` | ILP batch allocation |
+| POST | `/api/chroma/upsert/internship` | Upsert internship embedding |
+| POST | `/api/chroma/upsert/candidate` | Upsert candidate embedding |
+| GET | `/api/chroma/status` | ChromaDB collection stats |
 
-## ChromaDB Integration Details
+## ML Model Performance
 
-- **Collections**: `recomids_internships` + `recomids_candidates`
-- **Distance metric**: `cosine` (via `hnsw:space=cosine`)
-- **Embedding**: 50-dim TF-IDF term-frequency vector over a fixed tech-skills vocabulary, L2-normalized
-- **Upsert**: Every create/update of an internship or candidate profile upserts its embedding into ChromaDB
-- **Query**: ANN query returns top-K by cosine similarity (distance = 1 - cosine_similarity)
-- **Fallback**: If ChromaDB is offline, falls back to in-memory cosine similarity over embeddings stored in MongoDB
+| Metric | Score |
+|---|---|
+| Skill Overlap Accuracy | 100% |
+| BM25 Top-1 Accuracy | 100% |
+| Embedding Similarity Accuracy | 100% |
+| Precision@3 | 0.7500 |
+| Recall@3 | 0.9167 |
+| NDCG@3 | 0.9759 |
+| MAP | 0.9479 |
+| MRR | 1.0000 |
+
+## Project Structure
+
+```
+Internship-Recomendation/
+├── frontend/                    # React + Vite
+│   └── src/
+│       ├── api/                 # Axios API clients
+│       ├── components/          # Navbar, InternshipCard, ScoreBar
+│       ├── context/             # AuthContext (JWT)
+│       └── pages/
+│           ├── candidate/       # Dashboard, Profile, Applications
+│           └── recruiter/       # Dashboard, Profile, PostInternship, Applicants, Shortlist
+│
+├── backend/                     # Express.js
+│   ├── controllers/             # Auth, Candidate, Recruiter, Internship
+│   ├── middleware/               # JWT auth, role check, Cloudinary upload
+│   ├── models/                  # Mongoose schemas
+│   ├── routes/                  # Express routes
+│   └── services/
+│       └── mlClient.service.js  # HTTP client for Python ML backend
+│
+├── ml_backend/                  # FastAPI (Python)
+│   ├── main.py                  # App entry + lifespan
+│   ├── run.py                   # Windows startup helper
+│   ├── routers/                 # embed, rank, shortlist, chroma
+│   ├── services/
+│   │   ├── embedder.py          # sentence-transformers wrapper
+│   │   ├── chroma_service.py    # ChromaDB embedded client
+│   │   ├── bm25_service.py      # BM25 ranking
+│   │   └── ranking_service.py   # LightGBM hybrid ranker
+│   ├── models/
+│   │   └── lgbm_ranker.pkl      # Trained model (110KB)
+│   ├── train_ranker.py          # Training script
+│   ├── evaluate.py              # Evaluation suite
+│   └── job_dataset.csv          # 1068 real job listings
+│
+└── README.md
+```
+
+## License
+
+MIT

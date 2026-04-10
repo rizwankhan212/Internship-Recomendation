@@ -1,8 +1,9 @@
 require('dotenv').config();
-const express = require('express');
-const path    = require('path');
-const cors    = require('cors');
-const morgan  = require('morgan');
+const express   = require('express');
+const path      = require('path');
+const cors      = require('cors');
+const morgan    = require('morgan');
+const rateLimit = require('express-rate-limit');
 const connectDB          = require('./config/db');
 const { checkMLBackend, getMLStatus, getChromaStatus } = require('./services/mlClient.service');
 
@@ -19,6 +20,15 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
+
+// Global rate limiter: 100 requests per 15 minutes per IP
+app.use('/api', rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { success: false, message: 'Too many requests. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+}));
 
 // ── Health ─────────────────────────────────────────────────────────────────────
 app.get('/api/health', async (req, res) => {

@@ -1,0 +1,25 @@
+{
+  "trained_on": "job_dataset.csv (1068 real jobs)",
+  "n_pairs": 3000,
+  "n_train": 2400,
+  "n_test": 600,
+  "accuracy": 1.0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "auc_roc": 1.0,
+  "features": [
+    "BM25 Score",
+    "Vector Similarity",
+    "Skill Overlap",
+    "Location Score"
+  ],
+  "n_estimators": 150,
+  "num_leaves": 31,
+  "feature_importance": {
+    "BM25 Score": 0.3166926677067083,
+    "Vector Similarity": 0.2698907956318253,
+    "Skill Overlap": 0.3666146645865835,
+    "Location Score": 0.046801872074883
+  }
+}
