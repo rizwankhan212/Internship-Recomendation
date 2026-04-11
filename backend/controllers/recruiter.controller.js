@@ -214,7 +214,8 @@ exports.updateApplicationStatus = async (req, res) => {
       .populate('internship', 'title company');
     if (!application) return res.status(404).json({ success: false, message: 'Not found' });
 
-    // If rejected — delete resume from Cloudinary and remove the application
+    // If rejected — delete resume from Cloudinary but keep the application record
+    // so the candidate can see the rejection status on their dashboard
     if (status === 'not_selected') {
       if (application.resumePath) {
         try {
@@ -230,8 +231,10 @@ exports.updateApplicationStatus = async (req, res) => {
           console.error('Cloudinary delete error:', cloudErr.message);
         }
       }
-      await Application.findByIdAndDelete(application._id);
-      return res.json({ success: true, deleted: true, message: 'Application rejected and removed' });
+      application.status = 'not_selected';
+      application.resumePath = ''; // cleared from Cloudinary
+      await application.save();
+      return res.json({ success: true, application, message: 'Application rejected' });
     }
 
     application.status = status;

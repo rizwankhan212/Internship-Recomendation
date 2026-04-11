@@ -102,7 +102,7 @@ export default function CandidateDashboard() {
         </div>
 
         {/* Stats Row */}
-        <div className="grid-3" style={{ marginBottom: 32 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 32 }}>
           <div className="stat-card">
             <div className="stat-number" style={{ color: 'var(--accent)' }}>{myApplications.length}</div>
             <div className="stat-label">Applications Sent</div>
@@ -118,6 +118,12 @@ export default function CandidateDashboard() {
               {myApplications.filter((a) => a.status === 'selected').length}
             </div>
             <div className="stat-label">Selected</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number" style={{ color: '#ff4d6a' }}>
+              {myApplications.filter((a) => a.status === 'not_selected').length}
+            </div>
+            <div className="stat-label">Rejected</div>
           </div>
         </div>
 

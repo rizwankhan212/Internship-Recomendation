@@ -15,14 +15,15 @@ export default function Applicants() {
   const [rejecting, setRejecting] = useState(null);
 
   const handleReject = async (appId) => {
-    if (!window.confirm('Reject this candidate? Their application and resume will be permanently deleted.')) return;
+    if (!window.confirm('Reject this candidate? Their resume will be removed.')) return;
     setRejecting(appId);
     try {
       await updateApplicationStatus(appId, 'not_selected');
       setData((prev) => ({
         ...prev,
-        applications: prev.applications.filter((a) => a._id !== appId),
-        total: prev.total - 1,
+        applications: prev.applications.map((a) =>
+          a._id === appId ? { ...a, status: 'not_selected', resumePath: '' } : a
+        ),
       }));
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to reject');
@@ -138,9 +139,9 @@ export default function Applicants() {
                                 className="btn btn-danger btn-sm"
                                 style={{ fontSize: 12 }}
                                 onClick={() => handleReject(app._id)}
-                                disabled={rejecting === app._id}
+                                disabled={rejecting === app._id || app.status === 'not_selected'}
                               >
-                                {rejecting === app._id ? '...' : '✕ Reject'}
+                                {rejecting === app._id ? '...' : app.status === 'not_selected' ? '✗ Rejected' : '✕ Reject'}
                               </button>
                             </div>
                           </td>
