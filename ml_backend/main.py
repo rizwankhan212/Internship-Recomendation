@@ -59,6 +59,16 @@ app.include_router(shortlist_router.router, prefix="/api", tags=["Shortlisting"]
 app.include_router(chroma_router.router,    prefix="/api", tags=["ChromaDB"])
 
 
+@app.get("/", tags=["Health"])
+def root():
+    return {
+        "service": "RecoMinds ML Backend",
+        "version": "1.0.0",
+        "docs": "/docs",
+        "health": "/health",
+    }
+
+
 @app.get("/health", tags=["Health"])
 def health():
     return {

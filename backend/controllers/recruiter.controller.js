@@ -89,10 +89,16 @@ exports.updateInternship = async (req, res) => {
     if (!internship) return res.status(404).json({ success: false, message: 'Not found' });
 
     const { title, description, skills, location, type, duration, stipend, openings, minCgpa, isActive } = req.body;
-    Object.assign(internship, {
-      title, description, location, type, duration, stipend, openings, minCgpa, isActive,
-      skills: skills?.map((s) => s.toLowerCase()) || internship.skills,
+
+    // Only assign fields that were actually sent in the request body
+    // to avoid overwriting required fields with undefined
+    const updates = { title, description, location, type, duration, stipend, openings, minCgpa, isActive };
+    Object.keys(updates).forEach((key) => {
+      if (updates[key] !== undefined) internship[key] = updates[key];
     });
+    if (skills !== undefined) {
+      internship.skills = skills.map((s) => s.toLowerCase());
+    }
     await internship.save();
 
     // Re-upsert embedding

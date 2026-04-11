@@ -135,14 +135,15 @@ const updateProfileRules = [
 
 const searchRules = [
   body('query')
-    .optional().trim().isLength({ max: 500 }).customSanitizer(sanitize),
-  sanitizeField('location'),
+    .optional({ values: 'falsy' }).trim().isLength({ max: 500 }).customSanitizer(sanitize),
+  body('location')
+    .optional({ values: 'falsy' }).trim().isLength({ max: 100 }).customSanitizer(sanitize),
   body('type')
-    .optional().isIn(['remote', 'on-site', 'hybrid']).withMessage('Invalid type'),
+    .optional({ values: 'falsy' }).isIn(['remote', 'on-site', 'hybrid']).withMessage('Invalid type'),
   body('skills')
-    .optional().isArray({ max: 20 }),
+    .optional({ values: 'falsy' }).isArray({ max: 20 }),
   body('skills.*')
-    .optional().isString().trim().isLength({ max: 50 }).customSanitizer(sanitize),
+    .optional({ values: 'falsy' }).isString().trim().isLength({ max: 50 }).customSanitizer(sanitize),
   handleValidationErrors,
 ];
 

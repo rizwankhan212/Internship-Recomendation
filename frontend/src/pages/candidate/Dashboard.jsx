@@ -48,7 +48,7 @@ export default function CandidateDashboard() {
     setSearchLoading(true);
     setSearchPage(1); // reset pagination on new search
     try {
-      const res = await searchInternships({ query, ...filters, skills: user?.skills });
+      const res = await searchInternships({ query, ...filters });
       setSearchResults(res.data.results || []);
       setActiveTab('search');
     } catch (err) {

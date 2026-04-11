@@ -32,12 +32,23 @@ exports.updateProfile = async (req, res) => {
 // ── Search ────────────────────────────────────────────────────────────────────
 exports.searchInternships = async (req, res) => {
   try {
-    const { query = '', location, type, skills } = req.body;
+    const { query = '', location, type } = req.body;
 
     const filter = { isActive: true };
     if (location) filter.location = { $regex: location, $options: 'i' };
     if (type)     filter.type     = type;
-    if (skills?.length) filter.skills = { $in: skills.map((s) => s.toLowerCase()) };
+
+    // If a text query is provided, do a loose keyword match on title/description/company
+    // so we narrow the set before sending to the ML ranker
+    if (query.trim()) {
+      const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.$or = [
+        { title:       { $regex: escaped, $options: 'i' } },
+        { description: { $regex: escaped, $options: 'i' } },
+        { company:     { $regex: escaped, $options: 'i' } },
+        { skills:      { $regex: escaped, $options: 'i' } },
+      ];
+    }
 
     const [internships, candidate] = await Promise.all([
       Internship.find(filter).populate('recruiter', 'name company'),
