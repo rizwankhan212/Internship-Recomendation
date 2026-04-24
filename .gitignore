@@ -6,3 +6,5 @@ __pycache__/
 chroma_db/
 dist/
 uploads/
+generate_report.py
+RecoMinds_Project_Report.docx
