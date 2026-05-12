@@ -10,10 +10,13 @@ const { checkMLBackend, getMLStatus, getChromaStatus } = require('./services/mlC
 // Connect to MongoDB
 connectDB();
 
-// Connect to Python ML backend (non-blocking)
-checkMLBackend();
+// Connect to Python ML backend (non-blocking, longer delay for Render cold starts)
+checkMLBackend(3, 15000);
 
 const app = express();
+
+// Trust Render's reverse proxy (needed for express-rate-limit + X-Forwarded-For)
+app.set('trust proxy', 1);
 
 app.use(cors({
   origin: [
@@ -35,6 +38,7 @@ app.use('/api', rateLimit({
   message: { success: false, message: 'Too many requests. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false },  // Render proxy handled via trust proxy
 }));
 
 // ── Health ─────────────────────────────────────────────────────────────────────
