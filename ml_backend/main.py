@@ -4,6 +4,7 @@ Handles: Embeddings · ChromaDB ANN · BM25 · LightGBM Ranking · Greedy/ILP Al
 Called internally by the Express backend via HTTP.
 """
 
+import os
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -41,9 +42,13 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# CORS: use ALLOWED_ORIGINS env var in production (comma-separated), fallback to localhost
+_default_origins = ["http://localhost:5000", "http://localhost:5173"]
+_origins = os.environ.get("ALLOWED_ORIGINS", "").split(",") if os.environ.get("ALLOWED_ORIGINS") else _default_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5000", "http://localhost:5173"],
+    allow_origins=_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )

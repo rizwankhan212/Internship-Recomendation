@@ -17,9 +17,9 @@
   "n_estimators": 150,
   "num_leaves": 31,
   "feature_importance": {
-    "BM25 Score": 0.3166926677067083,
-    "Vector Similarity": 0.2698907956318253,
-    "Skill Overlap": 0.3666146645865835,
-    "Location Score": 0.046801872074883
+    "BM25 Score": 0.3277310924369748,
+    "Vector Similarity": 0.2739495798319328,
+    "Skill Overlap": 0.37478991596638656,
+    "Location Score": 0.023529411764705882
   }
 }
