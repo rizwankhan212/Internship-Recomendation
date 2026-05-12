@@ -13,31 +13,52 @@ const axios = require('axios');
 const ML_URL = process.env.ML_BACKEND_URL || 'http://localhost:8001';
 let mlAvailable = false;
 
-// Lightweight axios instance for internal calls
+// Axios instance — 60s timeout to survive Render free-tier cold starts (~50s)
 const ml = axios.create({
   baseURL:        ML_URL,
-  timeout:        15000,  // 15s — ranking can take a moment
+  timeout:        60000,  // 60s — Render free instances need up to 50s to cold-start
   headers:        { 'Content-Type': 'application/json' },
 });
 
-// ── Connection check ──────────────────────────────────────────────────────────
-async function checkMLBackend() {
+// ── Connection check (with retry for cold starts) ─────────────────────────────
+async function checkMLBackend(retries = 3, delayMs = 5000) {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await ml.get('/health');
+      mlAvailable = res.data?.status === 'ok';
+      if (mlAvailable) {
+        const { embedder, chromadb } = res.data;
+        console.log(`✅ Python ML Backend connected at ${ML_URL}`);
+        console.log(`   Embedder:  ${embedder.model} (dim=${embedder.dim})`);
+        console.log(`   ChromaDB:  ${chromadb.ready ? 'ready' : 'not ready'}`);
+        return true;
+      }
+    } catch (err) {
+      mlAvailable = false;
+      console.warn(`⚠️  ML Backend attempt ${attempt}/${retries} failed — ${err.message}`);
+      if (attempt < retries) {
+        console.warn(`   Retrying in ${delayMs / 1000}s (cold start may be in progress)...`);
+        await new Promise((r) => setTimeout(r, delayMs));
+      }
+    }
+  }
+  console.warn(`⚠️  Python ML Backend unavailable at ${ML_URL} after ${retries} attempts`);
+  return false;
+}
+
+// Periodically re-check ML backend availability (every 2 minutes)
+setInterval(async () => {
   try {
     const res = await ml.get('/health');
+    const wasAvailable = mlAvailable;
     mlAvailable = res.data?.status === 'ok';
-    if (mlAvailable) {
-      const { embedder, chromadb } = res.data;
-      console.log(`✅ Python ML Backend connected at ${ML_URL}`);
-      console.log(`   Embedder:  ${embedder.model} (dim=${embedder.dim})`);
-      console.log(`   ChromaDB:  ${chromadb.ready ? 'ready' : 'not ready'}`);
+    if (!wasAvailable && mlAvailable) {
+      console.log('✅ ML Backend reconnected (was offline)');
     }
-  } catch (err) {
+  } catch {
     mlAvailable = false;
-    console.warn(`⚠️  Python ML Backend unavailable at ${ML_URL}`);
-    console.warn('   Start with: cd ml_backend && uvicorn main:app --port 8001');
   }
-  return mlAvailable;
-}
+}, 2 * 60 * 1000);
 
 // ── Embedding ──────────────────────────────────────────────────────────────────
 async function embedText(text) {
