@@ -54,7 +54,16 @@ export default function Register() {
     try {
       let res;
       if (role === 'candidate') {
-        res = await registerCandidate({ ...form, skills: form.skills.map((s) => s.toLowerCase()) });
+        const payload = { ...form, skills: form.skills.map((s) => s.toLowerCase()) };
+        // Convert CGPA to number or remove if empty
+        if (payload.cgpa === '' || payload.cgpa === undefined) delete payload.cgpa;
+        else payload.cgpa = parseFloat(payload.cgpa);
+        // Remove empty optional fields so backend validators don't reject them
+        if (!payload.location) delete payload.location;
+        if (!payload.college) delete payload.college;
+        if (!payload.degree) delete payload.degree;
+        if (!payload.bio) delete payload.bio;
+        res = await registerCandidate(payload);
       } else {
         res = await registerRecruiter(form);
       }
